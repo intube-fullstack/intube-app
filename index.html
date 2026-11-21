@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InTube — Multi-User Creators & Studio</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- TOP NAVBAR -->
+  <header class="navbar">
+    <div class="nav-left">
+      <button id="menuBtn" class="icon-btn"><i class="fa-solid fa-bars"></i></button>
+      <a href="#" class="logo" onclick="goHome(event)">
+        <span class="logo-icon"><i class="fa-solid fa-play"></i></span>
+        <span class="logo-text">InTube</span>
+      </a>
+    </div>
+
+    <div class="nav-center">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search videos, creators, categories..." />
+        <button onclick="renderFeed()"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <button class="studio-btn" id="studioToggleBtn" onclick="toggleStudioMode()">
+        <i class="fa-solid fa-sliders"></i> <span>Studio</span>
+      </button>
+      <button class="create-btn" onclick="openUploadModal()">
+        <i class="fa-solid fa-video"></i> Create
+      </button>
+      <span id="userBadge" class="user-badge hidden"></span>
+      <button class="auth-btn" id="openAuthBtn" onclick="openAuthModal()">Sign In</button>
+      <button class="logout-btn hidden" id="logoutBtn" onclick="logoutUser()">Logout</button>
+      <div class="avatar clickable" id="navAvatar" onclick="openChannelView(currentUserEmail)">I</div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <a href="#" class="side-link active" id="navHome" onclick="filterCategory('All', this, event)">
+        <i class="fa-solid fa-house"></i> <span>Home</span>
+      </a>
+      <a href="#" class="side-link" id="navShorts" onclick="openShortsView(this, event)">
+        <i class="fa-solid fa-bolt"></i> <span>Shorts</span>
+      </a>
+      <a href="#" class="side-link" id="navSubscriptions" onclick="openUserTab('subscriptions', this, event)">
+        <i class="fa-solid fa-tv"></i> <span>Subscriptions</span>
+      </a>
+
+      <hr class="side-divider" />
+
+      <a href="#" class="side-link" onclick="openChannelView(currentUserEmail, event)">
+        <i class="fa-solid fa-user-circle"></i> <span>My Channel</span>
+      </a>
+      <a href="#" class="side-link" onclick="openUserTab('history', this, event)">
+        <i class="fa-solid fa-clock-rotate-left"></i> <span>History</span>
+      </a>
+      <a href="#" class="side-link" onclick="openUserTab('watchLater', this, event)">
+        <i class="fa-solid fa-clock"></i> <span>Watch Later</span>
+      </a>
+      <a href="#" class="side-link" onclick="openUserTab('liked', this, event)">
+        <i class="fa-solid fa-thumbs-up"></i> <span>Liked Videos</span>
+      </a>
+
+      <hr class="side-divider" />
+
+      <a href="#" class="side-link" onclick="toggleStudioMode(event)">
+        <i class="fa-solid fa-chart-line"></i> <span>Creator / Admin Studio</span>
+      </a>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+      <!-- CATEGORY CHIPS -->
+      <div class="chips" id="chipsBar">
+        <button class="chip active" onclick="filterCategory('All', this, event)">All</button>
+        <button class="chip" onclick="filterCategory('Coding', this, event)">Coding</button>
+        <button class="chip" onclick="filterCategory('Gaming', this, event)">Gaming</button>
+        <button class="chip" onclick="filterCategory('Music', this, event)">Music</button>
+        <button class="chip" onclick="filterCategory('AI & Tech', this, event)">AI & Tech</button>
+        <button class="chip" onclick="openShortsView(this, event)">Shorts</button>
+      </div>
+
+      <!-- STUDIO PANEL -->
+      <section class="studio-panel hidden" id="studioPanel">
+        <div class="studio-header">
+          <div>
+            <h2 id="studioTitle"><i class="fa-solid fa-sliders"></i> Creator Studio</h2>
+            <p id="studioSubtitle">Apni videos manage karein, visibility badlein, aur stats dekhein</p>
+          </div>
+          <button class="create-btn" onclick="openUploadModal()">+ Upload Video</button>
+        </div>
+
+        <div class="stats-grid" id="studioStats"></div>
+
+        <div class="table-wrap">
+          <table class="studio-table">
+            <thead>
+              <tr>
+                <th>Video</th>
+                <th>Category</th>
+                <th>Visibility</th>
+                <th>Views</th>
+                <th>Likes</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studioVideoRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CHANNEL PAGE (ANY CREATOR OR OWN CHANNEL) -->
+      <section class="channel-page hidden" id="channelPage">
+        <div class="channel-banner-wrap">
+          <img id="channelBannerImg" src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&q=80" alt="Banner" class="channel-banner" />
+        </div>
+        <div class="channel-header-bar">
+          <div class="channel-profile-left">
+            <img id="channelLogoImg" src="" alt="Logo" class="channel-page-logo hidden" />
+            <div id="channelLogoFallback" class="channel-page-logo-fallback">I</div>
+            <div>
+              <h2 id="channelName">Channel Name</h2>
+              <p id="channelHandle">@handle • <span id="channelSubs">0</span> subscribers</p>
+              <p id="channelBio" class="channel-bio"></p>
+            </div>
+          </div>
+          <div class="channel-actions" id="channelPageActions"></div>
+        </div>
+        <h3 class="section-title">Channel Videos</h3>
+        <div class="video-grid" id="channelVideosGrid"></div>
+      </section>
+
+      <!-- WATCH / PLAYER VIEW -->
+      <section class="player-section hidden" id="playerSection">
+        <button class="back-btn" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <video id="mainVideoPlayer" controls autoplay></video>
+        <h2 id="playerTitle">Video Title</h2>
+        <div class="player-meta">
+          <div class="channel-info">
+            <div class="channel-avatar clickable" id="playerAvatar" onclick="openCurrentVideoChannel()">C</div>
+            <div>
+              <h4 class="clickable" id="playerChannel" onclick="openCurrentVideoChannel()">Channel</h4>
+              <span id="playerViews">0 views</span>
+            </div>
+            <button class="sub-btn" id="subBtn" onclick="toggleSubscribe()">Subscribe</button>
+          </div>
+
+          <div class="player-actions">
+            <button class="action-btn" id="likeBtn" onclick="reactVideo('like')">
+              <i class="fa-solid fa-thumbs-up"></i> <span id="likeCount">0</span>
+            </button>
+            <button class="action-btn" id="dislikeBtn" onclick="reactVideo('dislike')">
+              <i class="fa-solid fa-thumbs-down"></i> <span id="dislikeCount">0</span>
+            </button>
+            <button class="action-btn" id="watchLaterBtn" onclick="toggleWatchLater()">
+              <i class="fa-solid fa-clock"></i> <span id="watchLaterText">Watch Later</span>
+            </button>
+            <button class="action-btn" onclick="shareCurrentVideo()">
+              <i class="fa-solid fa-share"></i> Share
+            </button>
+          </div>
+        </div>
+
+        <div class="desc-box">
+          <p id="playerDescription"></p>
+        </div>
+
+        <div class="comments-box">
+          <h3>Comments (<span id="commentCount">0</span>)</h3>
+          <div class="comment-input-row">
+            <input type="text" id="commentInput" placeholder="Add a public comment..." />
+            <button onclick="addComment()">Comment</button>
+          </div>
+          <ul id="commentList"></ul>
+        </div>
+      </section>
+
+      <!-- FEED HEADING + GRID -->
+      <h2 id="feedHeading" class="feed-heading hidden"></h2>
+      <section class="video-grid" id="videoGrid"></section>
+    </main>
+  </div>
+
+  <!-- AUTH MODAL -->
+  <div class="modal hidden" id="authModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Sign In to Create Your Channel</h3>
+        <button onclick="closeModal('authModal')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="authForm">
+        <label>Your Email</label>
+        <input type="email" id="authEmail" placeholder="creator@example.com" required />
+        <button type="submit" class="submit-btn">Continue</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CHANNEL CUSTOMIZE MODAL -->
+  <div class="modal hidden" id="channelModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Customize Your Channel</h3>
+        <button onclick="closeModal('channelModal')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="channelForm">
+        <label>Channel Name</label>
+        <input type="text" id="editChName" required />
+        <label>Handle</label>
+        <input type="text" id="editChHandle" required />
+        <label>Bio</label>
+        <input type="text" id="editChBio" />
+        <label>Channel Logo</label>
+        <input type="file" id="editChLogo" accept="image/*" />
+        <label>Channel Banner</label>
+        <input type="file" id="editChBanner" accept="image/*" />
+        <button type="submit" class="submit-btn">Save Channel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- UPLOAD / EDIT VIDEO MODAL -->
+  <div class="modal hidden" id="uploadModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="uploadModalTitle">Upload Video to InTube</h3>
+        <button onclick="closeModal('uploadModal')"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="uploadForm">
+        <input type="hidden" id="editingVideoId" />
+        <label>Title</label>
+        <input type="text" id="vidTitle" required />
+        <label>Channel Name</label>
+        <input type="text" id="vidChannel" required />
+        <label>Category</label>
+        <select id="vidCategory">
+          <option value="Coding">Coding</option>
+          <option value="Gaming">Gaming</option>
+          <option value="Music">Music</option>
+          <option value="AI & Tech">AI & Tech</option>
+          <option value="Shorts">Shorts</option>
+        </select>
+        <label>Visibility</label>
+        <select id="vidVisibility">
+          <option value="public">Public</option>
+          <option value="unlisted">Unlisted</option>
+          <option value="private">Private</option>
+        </select>
+        <label>Description</label>
+        <input type="text" id="vidDesc" placeholder="Video description..." />
+
+        <div id="fileInputsGroup">
+          <label>Thumbnail Image (Gallery / Computer)</label>
+          <input type="file" id="vidThumbFile" accept="image/*" required />
+          <label>Video File (Gallery / Computer)</label>
+          <input type="file" id="vidFile" accept="video/*" required />
+        </div>
+
+        <p id="uploadStatus" class="status-text"></p>
+        <button type="submit" class="submit-btn" id="saveVideoBtn">Publish</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
